@@ -89,7 +89,6 @@ class MainFragment : Fragment() {
     }
 
     fun getBundleWithData(): Bundle{
-        //val listOfTimerObjects = viewModel.getTimerList()
         val listOfTransferObjects = viewModel.getTimerList().toTransfer()
         val b = Bundle()
         val arrList = ArrayList(listOfTransferObjects)
