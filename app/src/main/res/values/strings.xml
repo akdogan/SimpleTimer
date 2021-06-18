@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Simple Timer</string>
+    <string name="sets_label">Sets: %d</string>
+    <string name="timer_sets_title">Set %d</string>
+    <string name="timer_rounds_title">Round %d</string>
+
+    <string name="timer_service_description">"Allows to keep the timer running when the app is in background"</string>
+</resources>
