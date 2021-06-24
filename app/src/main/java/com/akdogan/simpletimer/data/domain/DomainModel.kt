@@ -5,10 +5,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.akdogan.simpletimer.Consts.TIMER_INTERVAL
 import com.akdogan.simpletimer.Consts.TIMER_MAX_VALUE
-
-sealed class MListItem
-
-object AddButton : MListItem()
+import java.io.Serializable
 
 data class TimerTransferObject(
     val time : Long,
@@ -50,6 +47,9 @@ fun TimerTransferObject.toTimerObject(): TimerObject =
 
 fun ArrayList<TimerTransferObject>.toDomain(): List<TimerObject> =
     this.map{ it.toTimerObject()}
+
+sealed class MListItem
+object AddButton : MListItem()
 
 
 class TimerObject(
