@@ -6,8 +6,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import com.akdogan.simpletimer.Consts
-import com.akdogan.simpletimer.Consts.ONGOING_NOTIFICATION_ID
+import com.akdogan.simpletimer.Constants
+import com.akdogan.simpletimer.Constants.ONGOING_NOTIFICATION_ID
 import com.akdogan.simpletimer.ui.CountDownTimerCoroutine
 import com.akdogan.simpletimer.ui.MainActivity
 
@@ -42,7 +42,7 @@ class TimerService : Service() {
             }
 
         val notification: Notification = Notification.Builder(this,
-            Consts.NOT_CHANNEL_ID
+            Constants.NOT_CHANNEL_ID
         )
             .setContentTitle("SERVICE TEST")
             .setContentText("the service is runnig boi!!")

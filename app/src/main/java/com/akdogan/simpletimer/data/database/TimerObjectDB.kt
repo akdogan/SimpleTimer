@@ -7,7 +7,7 @@ import com.akdogan.simpletimer.data.domain.TimerObject
 
 @Entity(tableName = "last_config_table")
 class TimerObjectDB(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
     @ColumnInfo
@@ -20,21 +20,18 @@ class TimerObjectDB(
     val manual: Boolean
 )
 
-fun List<TimerObject>.toDatabase(): List<TimerObjectDB>{
-    /*val tempList = mutableListOf<TimerObjectDB>()
-    this.forEachIndexed { index, timerObject ->
-        tempList.add(timerObject.toDatabase(index))
-    }*/
-
-    return this.mapIndexed { index, timerObject ->
+fun List<TimerObject>.toDatabase(): List<TimerObjectDB> =
+    this.mapIndexed { index, timerObject ->
         timerObject.toDatabase(index)
     }
 
-    //return tempList
-}
 
 fun List<TimerObjectDB>.toDomain(): List<TimerObject>{
-    return this.sortedBy{ it.sort }.toDomain()
+    return this.sortedBy{
+        it.sort
+    }.map{
+        it.toTimerObject()
+    }
 }
 
 fun TimerObject.toDatabase(sort: Int): TimerObjectDB = TimerObjectDB(
