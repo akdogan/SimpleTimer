@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
                     .replace(R.id.container, MainFragment.newInstance())
                     .commitNow()
         }
-        //com.akdogan.simpletimer.service.createNotificationChannel(this)
+        com.akdogan.simpletimer.service.createNotificationChannel(this)
     }
 
     @Deprecated("Use static createNotificationChannel(context: Context)")

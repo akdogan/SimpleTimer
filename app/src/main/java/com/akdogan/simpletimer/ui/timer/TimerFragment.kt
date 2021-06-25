@@ -1,8 +1,12 @@
 package com.akdogan.simpletimer.ui.timer
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +27,23 @@ class TimerFragment : Fragment() {
 
     companion object {
         fun newInstance() = TimerFragment()
+    }
+
+    // Service connection
+    private var mService: TimerService? = null
+    private var mBound = false
+
+    private val connection = object: ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as TimerService.ServiceBinder
+            mService = binder.getService()
+            mBound = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            mBound = false
+        }
+
     }
 
     private var _binding: TimerFragmentBinding? = null
@@ -91,21 +112,36 @@ class TimerFragment : Fragment() {
         }
 
         viewModel.startNextSet()
-        //startMyService()
-
+        // TODO Should only start if service is not already running i guess
+        startMyService()
 
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        bindToService()
+        super.onStart()
+    }
+
+    override fun onStop() {
+        unBindFromService()
+        super.onStop()
+    }
+
+    private fun unBindFromService() {
+        requireActivity().unbindService(connection)
+        mBound = false
+    }
+
+    private fun bindToService() {
+        val intent = Intent(requireContext(), TimerService::class.java)
+        requireActivity().bindService(intent, connection, Context.BIND_ABOVE_CLIENT)
     }
 
     private fun playSound() {
         lifecycleScope.launch {
             mPlayer?.start()
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        //startMyService()
     }
 
     private fun startMyService() {
@@ -117,6 +153,7 @@ class TimerFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        mPlayer?.release()
         mPlayer = null
     }
 

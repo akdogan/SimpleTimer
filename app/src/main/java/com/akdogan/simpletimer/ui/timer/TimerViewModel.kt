@@ -88,7 +88,7 @@ class TimerViewModel(
             _playSound.postValue(true)
             startNextTimer()
         }
-        return if (t.timerType) {
+        return if (t.timerTypeAutomatic) {
             _countingUp.postValue(false)
             object : CountDownTimerCoroutine(t.time * 1000, 1000) {
                 override fun onTick(millis: Long) { onTick(millis) }

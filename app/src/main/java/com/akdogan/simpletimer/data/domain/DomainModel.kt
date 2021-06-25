@@ -36,7 +36,7 @@ data class TimerTransferObject(
 }
 
 fun TimerObject.toTransferObject(): TimerTransferObject =
-    TimerTransferObject(this.time, this.timerType)
+    TimerTransferObject(this.time, this.timerTypeAutomatic)
 
 fun List<TimerObject>.toTransfer(): List<TimerTransferObject> =
     this.map{ it.toTransferObject()}
@@ -63,7 +63,10 @@ class TimerObject(
             }
         }
 
-    var timerType = initialTimerType
+    /**
+     * True
+     */
+    var timerTypeAutomatic = initialTimerType
         private set
 
     val label: String
@@ -77,8 +80,8 @@ class TimerObject(
      * @return the new timer type after it was toggled
      */
     fun toggleTimerType(): Boolean {
-        timerType = !timerType
-        return timerType
+        timerTypeAutomatic = !timerTypeAutomatic
+        return timerTypeAutomatic
     }
 
     fun incrementTime(){

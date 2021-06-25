@@ -43,7 +43,7 @@ class TimerListAdapter(
         }
 
         private fun setTimerType(item: TimerObject){
-            if (item.timerType){
+            if (item.timerTypeAutomatic){
                 binding.timerLabel.text = item.label
                 binding.toggleTimerType.text = "Countdown"
                 binding.buttonDecrementTimer.isEnabled = true

@@ -6,12 +6,14 @@ import kotlin.math.absoluteValue
 /**
  * Creates a Timer that can count up indefinitely.
  * This timer is using the Globalscope. Make sure to stop it when it is no longer required.
- * Can savely be paused and resumed with [startTimer] / [stopTimer]
+ * Can savely be paused and resumed with [startTimer] / [stopTimer], however, the [onFinish]
+ * callback will always be invoked when calling [stopTimer].
+ * Use
  * The timer cannot be reset. Use a new instance instead.
  * @param countInterval the interval to count in milliseconds
  */
 
-abstract class CountUpTimerCoroutine(protected val countInterval: Long){
+abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
     protected var millisCount = 0L
     private var timerJob: Job? = null
 
@@ -30,9 +32,7 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long){
     /**
      * Starts / resumes the timer
      */
-    open fun startTimer(): CountUpTimerCoroutine{
-
-
+    open fun startTimer(): CountUpTimerCoroutine {
         /*val scope = CoroutineScope(Job() + Dispatchers.Default)
         timerJob = scope.launch(Dispatchers.Default) {
             run()
@@ -46,14 +46,21 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long){
     /**
      * Stops / pauses the timer
      */
-    fun stopTimer(){
+    fun stopTimer() {
         timerJob?.cancel()
         onFinish(millisCount)
-        }
+    }
 
-    protected open suspend fun run(){
+    /**
+     * Cancels the timer without invoking the [onStop] callback
+     */
+    fun cancel(){
+        timerJob?.cancel()
+    }
+
+    protected open suspend fun run() {
         delay(countInterval)
-        while (true){
+        while (true) {
             onTick(millisCount)
             millisCount += countInterval
             delay(countInterval)
@@ -69,12 +76,12 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long){
 abstract class CountDownTimerCoroutine(
     millisInFuture: Long,
     countInterval: Long
-) : CountUpTimerCoroutine(countInterval){
+) : CountUpTimerCoroutine(countInterval) {
     private val millisInFutureNormalized = millisInFuture.absoluteValue
 
-    override suspend fun run(){
-        while (true){
-            if (millisCount > millisInFutureNormalized){
+    override suspend fun run() {
+        while (true) {
+            if (millisCount > millisInFutureNormalized) {
                 super.stopTimer()
             } else {
                 onTick(millisInFutureNormalized - millisCount)
