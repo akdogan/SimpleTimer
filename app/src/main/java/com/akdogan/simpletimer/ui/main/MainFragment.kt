@@ -1,15 +1,15 @@
 package com.akdogan.simpletimer.ui.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.akdogan.simpletimer.Consts
-import com.akdogan.simpletimer.Consts.BUNDLE_KEY_NUMBER_OF_SETS
+import com.akdogan.simpletimer.Constants
+import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.R
+import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
 import com.akdogan.simpletimer.ui.timer.TimerFragment
@@ -36,7 +36,10 @@ class MainFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
 
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(
+            this,
+            MainViewModelFactory(ServiceLocator.repo)
+        ).get(MainViewModel::class.java)
 
         _binding = MainFragmentBinding.inflate(inflater, container, false)
 
@@ -51,8 +54,6 @@ class MainFragment : Fragment() {
         binding.timerList.adapter = timerListAdapter
 
         binding.buttonIncrementSet.setOnClickListener {
-
-            Log.i(LABEL_TRACING, "padding start ${it.paddingStart}, end ${it.paddingEnd}")
             viewModel.incrementSet()
         }
 
@@ -65,7 +66,6 @@ class MainFragment : Fragment() {
         }
 
         viewModel.numberOfSets.observe(viewLifecycleOwner){ numberOfSets: Int ->
-            Log.i(LABEL_TRACING, "numSets observe valled with $numberOfSets")
             binding.setsLabel.text = getString(R.string.sets_label, numberOfSets)
         }
 
@@ -92,18 +92,17 @@ class MainFragment : Fragment() {
         val listOfTransferObjects = viewModel.getTimerList().toTransfer()
         val b = Bundle()
         val arrList = ArrayList(listOfTransferObjects)
-        b.putParcelableArrayList(Consts.BUNDLE_KEY_TIMER_LIST, arrList)
+        b.putParcelableArrayList(Constants.BUNDLE_KEY_TIMER_LIST, arrList)
         b.putInt(BUNDLE_KEY_NUMBER_OF_SETS, viewModel.numberOfSets.value ?: 1)
         return b
     }
 
 
 
-
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+
     }
 
 

@@ -3,9 +3,8 @@ package com.akdogan.simpletimer.data.domain
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.akdogan.simpletimer.Consts.TIMER_INTERVAL
-import com.akdogan.simpletimer.Consts.TIMER_MAX_VALUE
-import java.io.Serializable
+import com.akdogan.simpletimer.Constants.TIMER_INTERVAL
+import com.akdogan.simpletimer.Constants.TIMER_MAX_VALUE
 
 data class TimerTransferObject(
     val time : Long,

@@ -6,9 +6,9 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.akdogan.simpletimer.Consts.NOT_CHANNEL_DESC
-import com.akdogan.simpletimer.Consts.NOT_CHANNEL_ID
-import com.akdogan.simpletimer.Consts.NOT_CHANNEL_NAME
+import com.akdogan.simpletimer.Constants.NOT_CHANNEL_DESC
+import com.akdogan.simpletimer.Constants.NOT_CHANNEL_ID
+import com.akdogan.simpletimer.Constants.NOT_CHANNEL_NAME
 import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ui.main.MainFragment
 
@@ -17,14 +17,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                     .replace(R.id.container, MainFragment.newInstance())
                     .commitNow()
         }
-        createNotificationChannel()
+        //com.akdogan.simpletimer.service.createNotificationChannel(this)
     }
 
+    @Deprecated("Use static createNotificationChannel(context: Context)")
     fun createNotificationChannel(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT

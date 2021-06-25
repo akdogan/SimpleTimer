@@ -9,9 +9,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.akdogan.simpletimer.Consts.BUNDLE_KEY_NUMBER_OF_SETS
-import com.akdogan.simpletimer.Consts.BUNDLE_KEY_TIMER_LIST
+import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
+import com.akdogan.simpletimer.Constants.BUNDLE_KEY_TIMER_LIST
 import com.akdogan.simpletimer.R
+import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.TimerTransferObject
 import com.akdogan.simpletimer.data.domain.toDomain
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
@@ -44,7 +45,7 @@ class TimerFragment : Fragment() {
 
         viewModel = ViewModelProvider(
             this,
-            TimerViewModelFactory(sets, list)
+            TimerViewModelFactory(sets, list, ServiceLocator.repo)
         ).get(TimerViewModel::class.java)
 
         _binding = TimerFragmentBinding.inflate(inflater, container, false)
@@ -90,6 +91,7 @@ class TimerFragment : Fragment() {
         }
 
         viewModel.startNextSet()
+        //startMyService()
 
 
         super.onViewCreated(view, savedInstanceState)

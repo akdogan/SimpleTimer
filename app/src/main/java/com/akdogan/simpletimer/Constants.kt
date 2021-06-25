@@ -1,7 +1,7 @@
 package com.akdogan.simpletimer
 
-object Consts {
-    const val TIMER_MAX_VALUE = 5999
+object Constants {
+    const val TIMER_MAX_VALUE = 5999 // Corresponds to 99:99
 
     const val TIMER_INTERVAL = 5 // Interval when increasing or decreasing a timer
 
