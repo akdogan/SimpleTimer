@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -54,6 +55,7 @@ class TimerFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         mPlayer = MediaPlayer.create(requireContext(), R.raw.end_alarm)
 
@@ -64,27 +66,27 @@ class TimerFragment : Fragment() {
         }
 
         viewModel.playSound.observe(viewLifecycleOwner) {
-            if (it == true){
+            if (it == true) {
                 playSound()
                 viewModel.onPlaySoundDone()
             }
         }
 
-        viewModel.currentSet.observe(viewLifecycleOwner){
+        viewModel.currentSet.observe(viewLifecycleOwner) {
             binding.timerSetsTitle.text = getString(R.string.timer_sets_title, it)
         }
 
-        viewModel.currentRound.observe(viewLifecycleOwner){
+        viewModel.currentRound.observe(viewLifecycleOwner) {
             binding.timerRoundsTitle.text = getString(R.string.timer_rounds_title, it)
         }
 
-        viewModel.countingUp.observe(viewLifecycleOwner){
-            if (it == true){
+        viewModel.countingUp.observe(viewLifecycleOwner) {
+            if (it == true) {
                 binding.timerFragmentRootLayout.isClickable = true
                 binding.timerFragmentRootLayout.setOnClickListener {
                     viewModel.userStoppedTimer()
                 }
-            } else if (it == false){
+            } else if (it == false) {
                 binding.timerFragmentRootLayout.isClickable = false
                 binding.timerFragmentRootLayout.setOnClickListener(null)
             }
@@ -93,8 +95,7 @@ class TimerFragment : Fragment() {
         viewModel.startNextSet()
         //startMyService()
 
-
-        super.onViewCreated(view, savedInstanceState)
+        turnOnWakeLock()
     }
 
     private fun playSound() {
@@ -104,6 +105,7 @@ class TimerFragment : Fragment() {
     }
 
     override fun onPause() {
+        turnOffWakeLock()
         super.onPause()
         //startMyService()
     }
@@ -115,12 +117,19 @@ class TimerFragment : Fragment() {
 
 
     override fun onDestroyView() {
-        super.onDestroyView()
         _binding = null
         mPlayer = null
+        turnOffWakeLock()
+        super.onDestroyView()
     }
 
+    private fun turnOnWakeLock() {
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 
-
-
+    private fun turnOffWakeLock() {
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 }
+
+
