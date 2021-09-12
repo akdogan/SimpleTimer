@@ -24,7 +24,7 @@ abstract class TimerCallback {
      * @param nextTimer the next Timer in the row, or null if this was the last timer overall
      * @param nextSet Number of the next set, or null if this was the last set
      */
-    open fun onStart(currentTimer: TimerObject, currentSet: Int){}
+    open fun onStart(currentTimer: TimerObject, currentRound: Int, currentSet: Int){}
 
     /**
      * Called when all timers are completely done

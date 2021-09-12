@@ -11,13 +11,13 @@ import com.akdogan.simpletimer.ui.CountUpTimerCoroutine
 import kotlinx.coroutines.launch
 
 class TimerViewModel(
-    private val numberOfSets: Int,
+    val numberOfSets: Int,
     private val timerListTemplate: List<TimerObject>,
     private val repo: DataRepository
 ) : ViewModel() {
 
     private var timerInternal: CountUpTimerCoroutine? = null
-    private var timerList: MutableList<TimerObject>
+    private var timerList: MutableList<TimerObject> = mutableListOf()
     private var currentSetInternal: Int = 0
         set(value) {
             field = value
@@ -45,12 +45,14 @@ class TimerViewModel(
         get() = _currentRound
 
     init {
-        timerList = timerListTemplate.toMutableList()
+        //timerList = timerListTemplate.toMutableList()
         // TODO Check the proper scope for the coroutine
         viewModelScope.launch{
-            repo.saveTimers(timerList)
+            repo.saveTimers(timerListTemplate)
         }
     }
+
+    fun getTimerList(): List<TimerObject> = timerListTemplate
 
     fun onPlaySoundDone() = _playSound.postValue(false)
     fun userStoppedTimer() = timerInternal?.stopTimer()
@@ -112,12 +114,21 @@ class TimerViewModelFactory(
     val repo: DataRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return when {
+            modelClass.isAssignableFrom(TimerViewModel::class.java) ->
+                TimerViewModel(numberOfSets, listOfTimers, repo) as T
+            modelClass.isAssignableFrom(TimerViewModelService::class.java) ->
+                TimerViewModelService() as T
+            else -> throw IllegalArgumentException(
+                "Wrong ViewModel Class! Expected ${TimerViewModel::class.java} found $modelClass"
+            )
+        }/*
         if (modelClass.isAssignableFrom(TimerViewModel::class.java)) {
             return TimerViewModel(numberOfSets, listOfTimers, repo) as T
         } else {
             throw IllegalArgumentException(
                 "Wrong ViewModel Class! Expected ${TimerViewModel::class.java} found $modelClass"
             )
-        }
+        }*/
     }
 }

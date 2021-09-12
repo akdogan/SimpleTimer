@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.akdogan.simpletimer.Constants.NOT_CHANNEL_DESC
 import com.akdogan.simpletimer.Constants.NOT_CHANNEL_ID
@@ -14,9 +15,15 @@ import com.akdogan.simpletimer.ui.main.MainFragment
 
 class MainActivity : AppCompatActivity() {
 
+    // TODO if service timer is running go directly to timer screen
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
+
+        val action = intent?.action
+
+        Log.i("ACTIVITY_HERE", "received Intent action: $action")
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

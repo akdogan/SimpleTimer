@@ -9,39 +9,68 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.content.ContextCompat.getSystemService
 import com.akdogan.simpletimer.Constants
+import com.akdogan.simpletimer.Constants.ACTION_NEXT_TIMER
+import com.akdogan.simpletimer.Constants.ACTION_OPEN_TIMER_FRAGMENT
+import com.akdogan.simpletimer.Constants.ACTION_STOP_TIMER
 import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ui.MainActivity
 
 fun createNotificationChannel(context: Context){
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val importance = NotificationManager.IMPORTANCE_LOW
         val channel = NotificationChannel(
             Constants.NOT_CHANNEL_ID, Constants.NOT_CHANNEL_NAME, importance).apply {
             description = Constants.NOT_CHANNEL_DESC
         }
-        // Register the channel with the system
-        val notificationManager: NotificationManager =
-            getSystemService(context, NotificationManager::class.java) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        context.getNotMan().createNotificationChannel(channel)
     }
-
 }
 
-fun getServiceNotification(context: Context): Notification{
+fun Context.getNotMan(): NotificationManager{
+    return getSystemService(this, NotificationManager::class.java) as NotificationManager
+}
+
+fun getServiceNotification(
+    context: Context,
+    title: String = "SERVICE TEST",
+    body: String = "The Service is running BOI",
+    showNextButton: Boolean = false
+): Notification{
 
     val intent = Intent(context, MainActivity::class.java)
+        .setAction(ACTION_OPEN_TIMER_FRAGMENT)
 
     val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
-
 
     val notification: Notification = Notification.Builder(context,
         Constants.NOT_CHANNEL_ID
     )
-        .setContentTitle("SERVICE TEST")
-        .setContentText("the service is runnig boi!!")
+        .setContentTitle(title)
+        .setContentText(body)
         .setSmallIcon(R.drawable.ic_baseline_timer_24)
         .setContentIntent(pendingIntent)
         .setTicker("This seems to be the ticker text")
+        .also {
+            if (showNextButton){
+                it.addAction(getActionNext(context))
+            }
+        }
+        .addAction(getActionStop(context))
         .build()
     return notification
+}
+
+
+fun getActionNext(context: Context): Notification.Action {
+    val intent = Intent(context, TimerService::class.java)
+        .setAction(ACTION_NEXT_TIMER)
+    val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
+    return Notification.Action.Builder(null, "NEXT", pendingIntent ).build()
+}
+
+fun getActionStop(context: Context): Notification.Action{
+    val intent = Intent(context, TimerService::class.java)
+        .setAction(ACTION_STOP_TIMER)
+    val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
+    return Notification.Action.Builder(null, "STOP", pendingIntent).build()
 }

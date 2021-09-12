@@ -53,7 +53,7 @@ object AddButton : MListItem()
 
 class TimerObject(
     initialTime : Long = 60L,
-    initialTimerType: Boolean = true
+    timerTypeAutomatic: Boolean = true
     ): MListItem() {
 
     var time : Long = initialTime
@@ -66,7 +66,7 @@ class TimerObject(
     /**
      * True
      */
-    var timerTypeAutomatic = initialTimerType
+    var timerTypeAutomatic = timerTypeAutomatic
         private set
 
     val label: String
@@ -79,9 +79,8 @@ class TimerObject(
      * TODO should be replaced with enum
      * @return the new timer type after it was toggled
      */
-    fun toggleTimerType(): Boolean {
+    fun toggleTimerType() {
         timerTypeAutomatic = !timerTypeAutomatic
-        return timerTypeAutomatic
     }
 
     fun incrementTime(){

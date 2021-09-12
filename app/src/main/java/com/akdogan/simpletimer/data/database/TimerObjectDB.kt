@@ -42,5 +42,5 @@ fun TimerObject.toDatabase(sort: Int): TimerObjectDB = TimerObjectDB(
 
 fun TimerObjectDB.toTimerObject(): TimerObject = TimerObject(
     initialTime = this.time,
-    initialTimerType = !this.manual
+    timerTypeAutomatic = !this.manual
 )

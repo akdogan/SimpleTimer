@@ -3,6 +3,10 @@
     <string name="sets_label">Sets: %d</string>
     <string name="timer_sets_title">Set %d</string>
     <string name="timer_rounds_title">Round %d</string>
+    <!-- Service Notification -->
+    <string name="set_round_label">Set %d   Round %d</string>
+    <string name="stop_button_label">Stop</string>
+    <string name="next_button_label">Next</string>
 
     <string name="timer_service_description">"Allows to keep the timer running when the app is in background"</string>
 </resources>
