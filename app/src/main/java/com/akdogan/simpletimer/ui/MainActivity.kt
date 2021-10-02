@@ -20,18 +20,19 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
-                    .commitNow()
+                .replace(R.id.container, MainFragment.newInstance())
+                .commitNow()
         }
         //com.akdogan.simpletimer.service.createNotificationChannel(this)
     }
 
     @Deprecated("Use static createNotificationChannel(context: Context)")
-    fun createNotificationChannel(){
+    fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(
-                NOT_CHANNEL_ID, NOT_CHANNEL_NAME, importance).apply {
+                NOT_CHANNEL_ID, NOT_CHANNEL_NAME, importance
+            ).apply {
                 description = NOT_CHANNEL_DESC
             }
             // Register the channel with the system
