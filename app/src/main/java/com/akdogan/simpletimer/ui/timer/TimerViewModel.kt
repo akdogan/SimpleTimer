@@ -28,8 +28,8 @@ class TimerViewModel(
     val timerLabel: LiveData<String>
         get() = _timerLabel
 
-    private val _playSound = MutableLiveData(false)
-    val playSound: LiveData<Boolean>
+    private val _playSound = MutableLiveData<PlaySoundAction?>(null)
+    val playSound: LiveData<PlaySoundAction?>
         get() = _playSound
 
     private val _countingUp = MutableLiveData(false)
@@ -52,7 +52,7 @@ class TimerViewModel(
         }
     }
 
-    fun onPlaySoundDone() = _playSound.postValue(false)
+    fun onPlaySoundDone() = _playSound.postValue(null)
     fun userStoppedTimer() = timerInternal?.stopTimer()
 
     fun startNextSet() {
@@ -85,7 +85,7 @@ class TimerViewModel(
             _timerLabel.postValue(millis.millisToSeconds().getTimeAsString())
         }
         val onFinish = { millis: Long ->
-            _playSound.postValue(true)
+            _playSound.postValue(PlaySoundAction(t.currentSound))
             startNextTimer()
         }
         return if (t.timerType) {

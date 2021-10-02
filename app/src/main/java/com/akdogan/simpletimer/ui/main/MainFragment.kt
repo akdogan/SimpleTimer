@@ -1,11 +1,17 @@
 package com.akdogan.simpletimer.ui.main
 
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.akdogan.simpletimer.Constants
 import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.R
@@ -13,6 +19,8 @@ import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
 import com.akdogan.simpletimer.ui.timer.TimerFragment
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainFragment : Fragment() {
 
@@ -33,8 +41,10 @@ class MainFragment : Fragment() {
 
     private lateinit var viewModel: MainViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
         viewModel = ViewModelProvider(
             this,
@@ -49,8 +59,10 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         timerListAdapter = TimerListAdapter(
             viewModel::addTimer,
-            viewModel::removeTimer
-        )
+            viewModel::removeTimer,
+        ){ requestCode: Int ->
+            startSoundPickerActivity(requestCode)
+        }
         binding.timerList.adapter = timerListAdapter
 
         binding.buttonIncrementSet.setOnClickListener {
@@ -65,30 +77,32 @@ class MainFragment : Fragment() {
             navigateToTimer()
         }
 
-        viewModel.numberOfSets.observe(viewLifecycleOwner){ numberOfSets: Int ->
+        viewModel.numberOfSets.observe(viewLifecycleOwner) { numberOfSets: Int ->
             binding.setsLabel.text = getString(R.string.sets_label, numberOfSets)
         }
 
-        viewModel.listOfTimers.observe(viewLifecycleOwner){
-            it?.let{
+        viewModel.listOfTimers.observe(viewLifecycleOwner) {
+            it?.let {
                 timerListAdapter.dataSet = it
             }
         }
 
-
-
-
         super.onViewCreated(view, savedInstanceState)
     }
 
-    private fun navigateToTimer(){
+    private fun startSoundPickerActivity(requestCode: Int) {
+        val intent = Intent("android.intent.action.RINGTONE_PICKER")
+        startActivityForResult(intent, requestCode)
+    }
+
+    private fun navigateToTimer() {
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.container, TimerFragment::class.java, getBundleWithData() )
+            .replace(R.id.container, TimerFragment::class.java, getBundleWithData())
             .addToBackStack(null)
             .commit()
     }
 
-    fun getBundleWithData(): Bundle{
+    fun getBundleWithData(): Bundle {
         val listOfTransferObjects = viewModel.getTimerList().toTransfer()
         val b = Bundle()
         val arrList = ArrayList(listOfTransferObjects)
@@ -98,13 +112,32 @@ class MainFragment : Fragment() {
     }
 
 
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
 
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK) {
+            val uri: Uri? = data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            viewModel.setSoundChoiceForItem(requestCode, uri)
+        } else {
+            Log.i("SoundManager", "activity result no macht")
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun playSound(uri: Uri?) {
+        Log.i("SoundManager", "received uri, $uri")
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(1000)
+            val ringtoneManager = RingtoneManager.getRingtone(requireContext(), uri)
+            ringtoneManager.play()
+            delay(1000)
+            ringtoneManager.stop()
+        }
+    }
 
 
 }

@@ -2,6 +2,8 @@ package com.akdogan.simpletimer.ui.timer
 
 import android.content.Intent
 import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +20,7 @@ import com.akdogan.simpletimer.data.domain.TimerTransferObject
 import com.akdogan.simpletimer.data.domain.toDomain
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class TimerFragment : Fragment() {
@@ -65,9 +68,13 @@ class TimerFragment : Fragment() {
             }
         }
 
-        viewModel.playSound.observe(viewLifecycleOwner) {
-            if (it == true) {
-                playSound()
+        viewModel.playSound.observe(viewLifecycleOwner) { action: PlaySoundAction? ->
+            action?.let {
+                if (it.sound == null) {
+                    playDefaultSound()
+                } else {
+                    playCurrentSound(it.sound)
+                }
                 viewModel.onPlaySoundDone()
             }
         }
@@ -98,9 +105,21 @@ class TimerFragment : Fragment() {
         turnOnWakeLock()
     }
 
-    private fun playSound() {
-        lifecycleScope.launch {
+    private fun playDefaultSound() {
+        viewLifecycleOwner.lifecycleScope.launch {
             mPlayer?.start()
+        }
+    }
+
+    private fun playCurrentSound(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val ringTone = RingtoneManager.getRingtone(
+                requireContext(),
+                uri
+            )
+            ringTone.play()
+            delay(1000)
+            ringTone.stop()
         }
     }
 

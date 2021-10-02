@@ -1,23 +1,29 @@
 package com.akdogan.simpletimer.data.domain
 
 
+import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.core.net.toUri
 import com.akdogan.simpletimer.Constants.TIMER_INTERVAL
 import com.akdogan.simpletimer.Constants.TIMER_MAX_VALUE
 
 data class TimerTransferObject(
     val time : Long,
-    val countDown: Boolean
+    val countDown: Boolean,
+    val sound: String?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readLong(),
-        parcel.readByte() != 0.toByte()
-    )
+        parcel.readByte() != 0.toByte(),
+        parcel.readString()
+    ) {
+    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeLong(time)
         parcel.writeByte(if (countDown) 1 else 0)
+        parcel.writeString(sound)
     }
 
     override fun describeContents(): Int {
@@ -36,13 +42,13 @@ data class TimerTransferObject(
 }
 
 fun TimerObject.toTransferObject(): TimerTransferObject =
-    TimerTransferObject(this.time, this.timerType)
+    TimerTransferObject(this.time, this.timerType, this.currentSound?.toString())
 
 fun List<TimerObject>.toTransfer(): List<TimerTransferObject> =
     this.map{ it.toTransferObject()}
 
 fun TimerTransferObject.toTimerObject(): TimerObject =
-    TimerObject(this.time, this.countDown)
+    TimerObject(this.time, this.countDown, this.sound)
 
 fun ArrayList<TimerTransferObject>.toDomain(): List<TimerObject> =
     this.map{ it.toTimerObject()}
@@ -53,7 +59,8 @@ object AddButton : MListItem()
 
 class TimerObject(
     initialTime : Long = 60L,
-    initialTimerType: Boolean = true
+    initialTimerType: Boolean = true,
+    sound: String? = null
     ): MListItem() {
 
     var time : Long = initialTime
@@ -68,6 +75,10 @@ class TimerObject(
 
     val label: String
         get() = time.getTimeAsString()
+
+    var currentSound: Uri? = sound?.toUri()
+
+    val requestCode: Int = (10000..99999).random()
 
     /**
      * Toggles the type of timer between:

@@ -1,5 +1,6 @@
 package com.akdogan.simpletimer.ui.main
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
 import com.akdogan.simpletimer.Constants
@@ -82,6 +83,11 @@ class MainViewModel(
         viewModelScope.launch {
             repo.saveTimers(backingListOfTimers)
         }
+    }
+
+    fun setSoundChoiceForItem(requestCode: Int, uri: Uri?) {
+        backingListOfTimers.first { it.requestCode == requestCode }.currentSound = uri
+
     }
 
 }

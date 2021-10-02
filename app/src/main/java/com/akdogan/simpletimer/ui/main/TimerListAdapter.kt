@@ -10,20 +10,25 @@ import com.akdogan.simpletimer.databinding.TimerItemBinding
 
 class TimerListAdapter(
     private val addButtonFunction: () -> Unit,
-    private val removeItemFunction: (Int) -> Unit
+    private val removeItemFunction: (Int) -> Unit,
+    private val chooseSoundFunction: (Int) -> Unit
 
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var dataSet: List<MListItem> = emptyList()
-    set(value){
-        field = value
-        notifyDataSetChanged()
-    }
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
 
     class TimerListItem(val binding: TimerItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun onBind(item: TimerObject, deleteFunction: () -> Unit) {
+        fun onBind(
+            item: TimerObject,
+            chooseSoundFunction: (Int) -> Unit,
+            deleteFunction: () -> Unit,
+        ) {
             setTimerType(item)
             this.binding.buttonIncrementTimer.setOnClickListener {
                 item.incrementTime()
@@ -36,14 +41,17 @@ class TimerListAdapter(
             this.binding.deleteButton.setOnClickListener {
                 deleteFunction.invoke()
             }
+            this.binding.soundButton.setOnClickListener {
+                chooseSoundFunction.invoke(item.requestCode)
+            }
             this.binding.toggleTimerType.setOnClickListener {
                 item.toggleTimerType()
                 setTimerType(item)
             }
         }
 
-        private fun setTimerType(item: TimerObject){
-            if (item.timerType){
+        private fun setTimerType(item: TimerObject) {
+            if (item.timerType) {
                 binding.timerLabel.text = item.label
                 binding.toggleTimerType.text = "Countdown"
                 binding.buttonDecrementTimer.isEnabled = true
@@ -63,18 +71,23 @@ class TimerListAdapter(
 
     class TimerListAddButton(val binding: AddButtonBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun onBind(clickFunction: () -> Unit){
-            binding.buttonAddTimer.setOnClickListener{
+        fun onBind(clickFunction: () -> Unit) {
+            binding.buttonAddTimer.setOnClickListener {
                 clickFunction.invoke()
             }
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder){
-            is TimerListItem -> holder.onBind(dataSet[position] as TimerObject) {
+        when (holder) {
+
+            is TimerListItem -> holder.onBind(
+                item = dataSet[position] as TimerObject,
+                chooseSoundFunction = chooseSoundFunction
+            ) {
                 removeItemFunction.invoke(position)
             }
+
             is TimerListAddButton -> holder.onBind(addButtonFunction)
             else -> throw IllegalStateException("Something went severely wrong dude!")
         }

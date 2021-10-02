@@ -17,7 +17,10 @@ class TimerObjectDB(
     val time: Long,
 
     @ColumnInfo
-    val manual: Boolean
+    val manual: Boolean,
+
+    @ColumnInfo
+    val sound: String?
 )
 
 fun List<TimerObject>.toDatabase(): List<TimerObjectDB> =
@@ -37,10 +40,12 @@ fun List<TimerObjectDB>.toDomain(): List<TimerObject>{
 fun TimerObject.toDatabase(sort: Int): TimerObjectDB = TimerObjectDB(
     sort = sort,
     time = this.time,
-    manual = !this.timerType
+    manual = !this.timerType,
+    sound = this.currentSound.toString()
 )
 
 fun TimerObjectDB.toTimerObject(): TimerObject = TimerObject(
     initialTime = this.time,
-    initialTimerType = !this.manual
+    initialTimerType = !this.manual,
+    sound = this.sound
 )
