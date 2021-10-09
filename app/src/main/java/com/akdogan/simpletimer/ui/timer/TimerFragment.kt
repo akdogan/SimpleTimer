@@ -1,16 +1,13 @@
 package com.akdogan.simpletimer.ui.timer
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.app.AlertDialog
+import android.content.*
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpletimer.Constants
@@ -21,8 +18,10 @@ import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.*
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
+import com.akdogan.simpletimer.ui.main.MainFragment
+import com.akdogan.simpletimer.ui.printBackStack
 
-class TimerFragment : Fragment() {
+class TimerFragment : BaseFragment(), BackPressConsumer {
 
     companion object {
         fun newInstance() = TimerFragment()
@@ -56,11 +55,11 @@ class TimerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        val list = requireArguments()
-            .getParcelableArrayList<TimerTransferObject>(BUNDLE_KEY_TIMER_LIST)
+        val list = arguments
+            ?.getParcelableArrayList<TimerTransferObject>(BUNDLE_KEY_TIMER_LIST)
             ?.toDomain() ?: emptyList()
 
-        val sets = requireArguments().getInt(BUNDLE_KEY_NUMBER_OF_SETS, 1)
+        val sets = arguments?.getInt(BUNDLE_KEY_NUMBER_OF_SETS, 1) ?: 1
 
         viewModel = ViewModelProvider(
             this,
@@ -74,6 +73,7 @@ class TimerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         startMyService()
+        printBackStack()
         super.onViewCreated(view, savedInstanceState)
     }
 
@@ -142,6 +142,33 @@ class TimerFragment : Fragment() {
                 binding.timerLabel.text = "YEAH!!"
             }
         }
+    }
+
+    override fun onBackPressed(): Boolean {
+        if (mService?.allTimersAreFinished?.value == false) {
+            showConfirmationDialog()
+            return true
+        }
+        navigatToMain()
+        return true
+    }
+
+    fun showConfirmationDialog(){
+        AlertDialog.Builder(requireActivity())
+            .setTitle("Stop Timer?")
+            .setMessage("Are you sure you want to cancel your timer and go back to the main screen?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener{ _, _ ->
+                navigatToMain()
+            })
+            .setNegativeButton("Stay here", null)
+            .show()
+    }
+
+    private fun navigatToMain() {
+        mService?.stopService()
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.container, MainFragment.newInstance())
+            .commitNow()
     }
 
 }

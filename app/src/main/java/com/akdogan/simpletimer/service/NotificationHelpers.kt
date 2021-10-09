@@ -9,9 +9,6 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.content.ContextCompat.getSystemService
 import com.akdogan.simpletimer.Constants
-import com.akdogan.simpletimer.Constants.ACTION_NEXT_TIMER
-import com.akdogan.simpletimer.Constants.ACTION_OPEN_TIMER_FRAGMENT
-import com.akdogan.simpletimer.Constants.ACTION_STOP_TIMER
 import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ui.MainActivity
 
@@ -32,13 +29,12 @@ fun Context.getNotMan(): NotificationManager{
 
 fun getServiceNotification(
     context: Context,
-    title: String = "SERVICE TEST",
-    body: String = "The Service is running BOI",
+    title: String = "",
+    body: String = "",
     showNextButton: Boolean = false
 ): Notification{
 
     val intent = Intent(context, MainActivity::class.java)
-        .setAction(ACTION_OPEN_TIMER_FRAGMENT)
 
     val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
 
@@ -63,14 +59,14 @@ fun getServiceNotification(
 
 fun getActionNext(context: Context): Notification.Action {
     val intent = Intent(context, TimerService::class.java)
-        .setAction(ACTION_NEXT_TIMER)
+        .setAction(TimerService.ACTION_NEXT_TIMER)
     val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
     return Notification.Action.Builder(null, "NEXT", pendingIntent ).build()
 }
 
 fun getActionStop(context: Context): Notification.Action{
     val intent = Intent(context, TimerService::class.java)
-        .setAction(ACTION_STOP_TIMER)
+        .setAction(TimerService.ACTION_STOP_TIMER)
     val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
     return Notification.Action.Builder(null, "STOP", pendingIntent).build()
 }

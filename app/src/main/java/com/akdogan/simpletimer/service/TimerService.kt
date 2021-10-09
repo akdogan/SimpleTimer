@@ -7,8 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
-import com.akdogan.simpletimer.Constants.ACTION_NEXT_TIMER
-import com.akdogan.simpletimer.Constants.ACTION_STOP_TIMER
+import androidx.lifecycle.MutableLiveData
 import com.akdogan.simpletimer.Constants.ONGOING_NOTIFICATION_ID
 import com.akdogan.simpletimer.Constants.SERVICE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.Constants.SERVICE_KEY_TIMER_LIST
@@ -27,12 +26,10 @@ class TimerService : LifecycleService() {
         fun getService(): TimerService = this@TimerService
     }
 
-    companion object {
-        const val TAG = "SERVICE_PLAYGROUND"
-    }
-
     private lateinit var timerManager: TimerManager
-    private var initialized = false
+    private var _initialized = MutableLiveData<Boolean>()
+    val initialized : LiveData<Boolean>
+        get() = _initialized
 
     // Exposed observables
     val currentTime: LiveData<Long> by lazy { timerManager.currentTime }
@@ -69,21 +66,28 @@ class TimerService : LifecycleService() {
         }
 
         // Setup timerManager and observers
-        if (!initialized) {
+        if (initialized.value != true) {
             val timerList = intent?.getParcelableArrayListExtra<TimerTransferObject>(
                 SERVICE_KEY_TIMER_LIST
-            )?.toDomain() ?: emptyList()
-            val sets = intent?.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0) ?: 0
-            Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
-            timerManager = TimerManager(sets, timerList)
-            this.lifecycle.addObserver(timerManager)
-            setupObservers()
-            timerManager.startManager()
-            initialized = true
+            )?.toDomain()
+            if (timerList != null) {
+                val sets = intent.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0)
+                Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
+                timerManager = TimerManager(sets, timerList)
+                this.lifecycle.addObserver(timerManager)
+                setupObservers()
+                timerManager.startManager()
+                _initialized.postValue(true)
+            } else {
+                _initialized.postValue(false)
+            }
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
+
+    fun stopService() = stopSelf()
+
 
     private fun setupObservers() {
         timerManager.currentTime.observe(this) {
@@ -130,6 +134,13 @@ class TimerService : LifecycleService() {
         CoroutineScope(Job() + Dispatchers.Default).launch {
             mPlayer?.start()
         }
+    }
+
+    companion object {
+        private const val TAG = "SERVICE_PLAYGROUND"
+        const val ACTION_NEXT_TIMER = "ACTION_NEXT_TIMER"
+        const val ACTION_STOP_TIMER = "ACTION_STOP_TIMER"
+
     }
 
 }

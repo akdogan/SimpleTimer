@@ -12,9 +12,11 @@ import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
+import com.akdogan.simpletimer.ui.printBackStack
+import com.akdogan.simpletimer.ui.timer.BackPressConsumer
 import com.akdogan.simpletimer.ui.timer.TimerFragment
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), BackPressConsumer {
 
     companion object {
         fun newInstance(): MainFragment {
@@ -75,7 +77,7 @@ class MainFragment : Fragment() {
             }
         }
 
-
+        printBackStack()
 
 
         super.onViewCreated(view, savedInstanceState)
@@ -105,6 +107,10 @@ class MainFragment : Fragment() {
 
     }
 
+    override fun onBackPressed(): Boolean {
+        requireActivity().finish()
+        return true
+    }
 
 
 }
