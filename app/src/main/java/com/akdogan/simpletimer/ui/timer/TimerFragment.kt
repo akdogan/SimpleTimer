@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.akdogan.simpletimer.Constants
@@ -86,7 +87,14 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
 
     override fun onStart() {
         bindToService()
+        turnOnWakeLock()
         super.onStart()
+    }
+
+    override fun onPause() {
+        turnOffWakeLock()
+        super.onPause()
+        //startMyService()
     }
 
     override fun onStop() {
@@ -116,8 +124,9 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        turnOffWakeLock()
         _binding = null
+        super.onDestroyView()
     }
 
     fun setupServiceObservers() {
@@ -181,6 +190,14 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.container, MainFragment.newInstance())
             .commitNow()
+    }
+
+    private fun turnOnWakeLock() {
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun turnOffWakeLock() {
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
 }
