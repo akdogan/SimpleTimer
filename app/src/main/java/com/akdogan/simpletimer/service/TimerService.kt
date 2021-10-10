@@ -19,17 +19,13 @@ import com.akdogan.simpletimer.data.domain.toDomain
 import com.akdogan.simpletimer.timercore.TimerManager
 import kotlinx.coroutines.*
 
-// TODO Stop Service when user stops timer in the fragment
-// TODO Add Buttons in notification
 class TimerService : LifecycleService() {
     inner class ServiceBinder : Binder() {
         fun getService(): TimerService = this@TimerService
     }
 
     private lateinit var timerManager: TimerManager
-    private var _initialized = MutableLiveData<Boolean>()
-    val initialized : LiveData<Boolean>
-        get() = _initialized
+    private var initialized = false
 
     // Exposed observables
     val currentTime: LiveData<Long> by lazy { timerManager.currentTime }
@@ -37,6 +33,10 @@ class TimerService : LifecycleService() {
     val currentSet: LiveData<Int> by lazy { timerManager.currentSet }
     val currentRound: LiveData<Int> by lazy { timerManager.currentRound }
     val allTimersAreFinished: LiveData<Boolean> by lazy { timerManager.allTimersFinished }
+    val userHasStopped: LiveData<Boolean>
+        get() = _stoppedByUser
+
+    private val _stoppedByUser = MutableLiveData(false)
 
     private var mPlayer: MediaPlayer? = null
 
@@ -45,6 +45,8 @@ class TimerService : LifecycleService() {
         playSound()
         timerManager.userPressedNext()
     }
+
+    fun stopService() = stopSelf()
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -55,7 +57,7 @@ class TimerService : LifecycleService() {
         startForegroundService()
         when (intent?.action) {
             ACTION_NEXT_TIMER -> userPressedNext()
-            ACTION_STOP_TIMER -> stopSelf()
+            ACTION_STOP_TIMER -> userHasStopped()
         }
         Log.i(TAG, "onStartCommand Called, service ref: $this, intentAction: ${intent?.action}")
 
@@ -66,41 +68,47 @@ class TimerService : LifecycleService() {
         }
 
         // Setup timerManager and observers
-        if (initialized.value != true) {
+        if (!initialized) {
+
             val timerList = intent?.getParcelableArrayListExtra<TimerTransferObject>(
                 SERVICE_KEY_TIMER_LIST
-            )?.toDomain()
-            if (timerList != null) {
-                val sets = intent.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0)
-                Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
-                timerManager = TimerManager(sets, timerList)
-                this.lifecycle.addObserver(timerManager)
-                setupObservers()
-                timerManager.startManager()
-                _initialized.postValue(true)
-            } else {
-                _initialized.postValue(false)
-            }
+            )?.toDomain() ?: emptyList()
+            val sets = intent?.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0) ?: 0
+
+            Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
+
+            timerManager = TimerManager(sets, timerList)
+
+            setupObservers()
+            timerManager.startManager()
+            initialized = true
+
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    fun stopService() = stopSelf()
-
-
     private fun setupObservers() {
+
+        this.lifecycle.addObserver(timerManager)
+
         timerManager.currentTime.observe(this) {
             updateNotification(it.millisToSeconds().getTimeAsString())
             if (it == 0L) {
                 playSound()
             }
         }
+
         timerManager.allTimersFinished.observe(this) {
             if (it == true) {
                 stopSelf()
             }
         }
+    }
+
+    private fun userHasStopped() {
+        _stoppedByUser.postValue(true)
+        stopSelf()
     }
 
     private fun getSetsLabel(): String {
@@ -116,7 +124,6 @@ class TimerService : LifecycleService() {
         Log.i(TAG, "Service says goodbye")
         super.onDestroy()
     }
-
 
     private fun startForegroundService() {
         val notification = getServiceNotification(this)
@@ -140,7 +147,6 @@ class TimerService : LifecycleService() {
         private const val TAG = "SERVICE_PLAYGROUND"
         const val ACTION_NEXT_TIMER = "ACTION_NEXT_TIMER"
         const val ACTION_STOP_TIMER = "ACTION_STOP_TIMER"
-
     }
 
 }

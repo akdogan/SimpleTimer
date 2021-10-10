@@ -1,5 +1,6 @@
 package com.akdogan.simpletimer.data.database
 
+import android.util.Log
 import androidx.room.*
 
 @Dao
@@ -7,6 +8,7 @@ interface TimerDao {
 
     @Transaction
     suspend fun insertNew(items: List<TimerObjectDB>) {
+        Log.i("Database", "saving to database on thread ${Thread.currentThread().name}")
         deleteAll()
         insertAll(items)
     }

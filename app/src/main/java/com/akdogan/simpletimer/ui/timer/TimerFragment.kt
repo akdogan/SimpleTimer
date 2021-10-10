@@ -1,7 +1,10 @@
 package com.akdogan.simpletimer.ui.timer
 
 import android.app.AlertDialog
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -18,8 +21,12 @@ import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.*
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
+import com.akdogan.simpletimer.ui.BackPressConsumer
+import com.akdogan.simpletimer.ui.BaseFragment
 import com.akdogan.simpletimer.ui.main.MainFragment
 import com.akdogan.simpletimer.ui.printBackStack
+
+// TODO Show Backbutton in Toolbar
 
 class TimerFragment : BaseFragment(), BackPressConsumer {
 
@@ -33,7 +40,7 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     private var mService: TimerService? = null
     private var mBound = MutableLiveData<Boolean>(false)
 
-    private val connection = object: ServiceConnection{
+    private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as TimerService.ServiceBinder
             mService = binder.getService()
@@ -87,8 +94,8 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
         super.onStop()
     }
 
-    private fun getTransferList(): ArrayList<TimerTransferObject>{
-        return ArrayList(viewModel.getTimerList().toTransfer())
+    private fun getTransferList(): ArrayList<TimerTransferObject> {
+        return ArrayList(viewModel.timerListTemplate.toTransfer())
     }
 
     private fun unBindFromService() {
@@ -113,34 +120,35 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
         _binding = null
     }
 
-    fun setupServiceObservers(){
-        mService?.currentTime?.observe(viewLifecycleOwner){
+    fun setupServiceObservers() {
+        mService?.currentTime?.observe(viewLifecycleOwner) {
             Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received from Service: $it")
             binding.timerLabel.text = it.millisToSeconds().getTimeAsString()
         }
 
-        mService?.countingUp?.observe(viewLifecycleOwner){
-            if (it == true){
+        mService?.countingUp?.observe(viewLifecycleOwner) {
+            if (it == true) {
                 binding.timerFragmentRootLayout.isClickable = true
                 binding.timerFragmentRootLayout.setOnClickListener {
                     mService?.userPressedNext()
                 }
-            } else if (it == false){
+            } else if (it == false) {
                 binding.timerFragmentRootLayout.isClickable = false
                 binding.timerFragmentRootLayout.setOnClickListener(null)
             }
         }
-        mService?.currentSet?.observe(viewLifecycleOwner){
+        mService?.currentSet?.observe(viewLifecycleOwner) {
             binding.timerSetsTitle.text = getString(R.string.timer_sets_title, it)
         }
-        mService?.currentRound?.observe(viewLifecycleOwner){
+        mService?.currentRound?.observe(viewLifecycleOwner) {
             binding.timerRoundsTitle.text = getString(R.string.timer_rounds_title, it)
         }
-        mService?.allTimersAreFinished?.observe(viewLifecycleOwner){
+        mService?.allTimersAreFinished?.observe(viewLifecycleOwner) {
             Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received final call: $it")
-            if (it == true){
-                binding.timerLabel.text = "YEAH!!"
-            }
+            if (it == true) binding.timerLabel.text = "YEAH!!"
+        }
+        mService?.userHasStopped?.observe(viewLifecycleOwner) {
+            if (it == true) navigateToMain()
         }
     }
 
@@ -149,23 +157,27 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
             showConfirmationDialog()
             return true
         }
-        navigatToMain()
+        stopAndNavigatToMain()
         return true
     }
 
-    fun showConfirmationDialog(){
+    fun showConfirmationDialog() {
         AlertDialog.Builder(requireActivity())
             .setTitle("Stop Timer?")
             .setMessage("Are you sure you want to cancel your timer and go back to the main screen?")
-            .setPositiveButton("Yes", DialogInterface.OnClickListener{ _, _ ->
-                navigatToMain()
-            })
+            .setPositiveButton("Yes") { _, _ ->
+                stopAndNavigatToMain()
+            }
             .setNegativeButton("Stay here", null)
             .show()
     }
 
-    private fun navigatToMain() {
+    private fun stopAndNavigatToMain() {
         mService?.stopService()
+        navigateToMain()
+    }
+
+    private fun navigateToMain() {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.container, MainFragment.newInstance())
             .commitNow()

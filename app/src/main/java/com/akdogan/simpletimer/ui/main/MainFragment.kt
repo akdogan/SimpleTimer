@@ -12,8 +12,8 @@ import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
+import com.akdogan.simpletimer.ui.BackPressConsumer
 import com.akdogan.simpletimer.ui.printBackStack
-import com.akdogan.simpletimer.ui.timer.BackPressConsumer
 import com.akdogan.simpletimer.ui.timer.TimerFragment
 
 class MainFragment : Fragment(), BackPressConsumer {
@@ -22,8 +22,6 @@ class MainFragment : Fragment(), BackPressConsumer {
         fun newInstance(): MainFragment {
             return MainFragment()
         }
-
-        const val LABEL_TRACING = "LABEL_TRACING"
     }
 
     // Not sure, but docs say this is the way:
@@ -79,7 +77,6 @@ class MainFragment : Fragment(), BackPressConsumer {
 
         printBackStack()
 
-
         super.onViewCreated(view, savedInstanceState)
     }
 
@@ -111,6 +108,5 @@ class MainFragment : Fragment(), BackPressConsumer {
         requireActivity().finish()
         return true
     }
-
 
 }

@@ -1,4 +1,4 @@
-package com.akdogan.simpletimer.ui.timer
+package com.akdogan.simpletimer.ui
 
 interface BackPressConsumer {
 
