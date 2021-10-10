@@ -6,18 +6,18 @@ import com.akdogan.simpletimer.data.database.toDatabase
 import com.akdogan.simpletimer.data.database.toDomain
 import com.akdogan.simpletimer.data.domain.TimerObject
 
+// Todo add shared preferences
+
 class DataRepository(private val db: TimerDao){
     suspend fun loadTimers(): List<TimerObject>{
         val list = db.getAll()
         Log.i("DB_TEST", "list from db: $list")
         val domainList = list?.toDomain()
         Log.i("DB_TEST", "list to domain: $domainList")
-        return domainList//db.getAll()?.toDomain()
+        return domainList
     }
 
     suspend fun saveTimers(list: List<TimerObject>){
-        /*db.deleteAll()
-        db.insertAll(list.toDatabase())*/
         db.insertNew(list.toDatabase())
     }
 }

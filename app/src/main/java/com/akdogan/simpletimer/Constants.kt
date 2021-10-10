@@ -8,6 +8,9 @@ object Constants {
     const val BUNDLE_KEY_TIMER_LIST = "BUNDLE_KEY_TIMER_LIST"
     const val BUNDLE_KEY_NUMBER_OF_SETS = "BUNDLE_KEY_NUMBER_OF_SETS"
 
+    const val SERVICE_KEY_TIMER_LIST = "SERVICE_KEY_TIMER_LIST"
+    const val SERVICE_KEY_NUMBER_OF_SETS = "SERVICE_KEY_NUMBER_OF_SETS"
+
     val DEFAULT_TIMERS_ON_START = listOf<Long>(15, 45, 70)
 
     // Notifications
@@ -15,4 +18,5 @@ object Constants {
     const val NOT_CHANNEL_NAME = "Simple Timer Channel"
     const val NOT_CHANNEL_DESC = "Your running timer"
     const val ONGOING_NOTIFICATION_ID = 1234
+
 }

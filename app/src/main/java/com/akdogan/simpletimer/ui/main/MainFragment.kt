@@ -12,16 +12,16 @@ import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ServiceLocator
 import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
+import com.akdogan.simpletimer.ui.BackPressConsumer
+import com.akdogan.simpletimer.ui.printBackStack
 import com.akdogan.simpletimer.ui.timer.TimerFragment
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), BackPressConsumer {
 
     companion object {
         fun newInstance(): MainFragment {
             return MainFragment()
         }
-
-        const val LABEL_TRACING = "LABEL_TRACING"
     }
 
     // Not sure, but docs say this is the way:
@@ -75,8 +75,7 @@ class MainFragment : Fragment() {
             }
         }
 
-
-
+        printBackStack()
 
         super.onViewCreated(view, savedInstanceState)
     }
@@ -88,7 +87,7 @@ class MainFragment : Fragment() {
             .commit()
     }
 
-    fun getBundleWithData(): Bundle{
+    private fun getBundleWithData(): Bundle{
         val listOfTransferObjects = viewModel.getTimerList().toTransfer()
         val b = Bundle()
         val arrList = ArrayList(listOfTransferObjects)
@@ -105,6 +104,9 @@ class MainFragment : Fragment() {
 
     }
 
-
+    override fun onBackPressed(): Boolean {
+        requireActivity().finish()
+        return true
+    }
 
 }

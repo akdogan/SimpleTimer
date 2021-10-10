@@ -36,7 +36,7 @@ data class TimerTransferObject(
 }
 
 fun TimerObject.toTransferObject(): TimerTransferObject =
-    TimerTransferObject(this.time, this.timerType)
+    TimerTransferObject(this.time, this.timerTypeAutomatic)
 
 fun List<TimerObject>.toTransfer(): List<TimerTransferObject> =
     this.map{ it.toTransferObject()}
@@ -53,7 +53,7 @@ object AddButton : MListItem()
 
 class TimerObject(
     initialTime : Long = 60L,
-    initialTimerType: Boolean = true
+    timerTypeAutomatic: Boolean = true
     ): MListItem() {
 
     var time : Long = initialTime
@@ -63,7 +63,10 @@ class TimerObject(
             }
         }
 
-    var timerType = initialTimerType
+    /**
+     * True
+     */
+    var timerTypeAutomatic = timerTypeAutomatic
         private set
 
     val label: String
@@ -76,9 +79,8 @@ class TimerObject(
      * TODO should be replaced with enum
      * @return the new timer type after it was toggled
      */
-    fun toggleTimerType(): Boolean {
-        timerType = !timerType
-        return timerType
+    fun toggleTimerType() {
+        timerTypeAutomatic = !timerTypeAutomatic
     }
 
     fun incrementTime(){
