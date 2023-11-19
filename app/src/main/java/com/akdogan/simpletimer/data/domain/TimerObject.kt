@@ -7,7 +7,7 @@ import com.akdogan.simpletimer.Constants.TIMER_INTERVAL
 import com.akdogan.simpletimer.Constants.TIMER_MAX_VALUE
 
 data class TimerTransferObject(
-    val time : Long,
+    val time: Long,
     val countDown: Boolean
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
@@ -39,26 +39,23 @@ fun TimerObject.toTransferObject(): TimerTransferObject =
     TimerTransferObject(this.time, this.timerTypeAutomatic)
 
 fun List<TimerObject>.toTransfer(): List<TimerTransferObject> =
-    this.map{ it.toTransferObject()}
+    this.map { it.toTransferObject() }
 
 fun TimerTransferObject.toTimerObject(): TimerObject =
     TimerObject(this.time, this.countDown)
 
 fun ArrayList<TimerTransferObject>.toDomain(): List<TimerObject> =
-    this.map{ it.toTimerObject()}
+    this.map { it.toTimerObject() }
 
-sealed class MListItem
-object AddButton : MListItem()
-
-
+// TODO probably dont need this anymore, should be replaced with transfer object
 class TimerObject(
-    initialTime : Long = 60L,
+    initialTime: Long = 60L,
     timerTypeAutomatic: Boolean = true
-    ): MListItem() {
+) {
 
-    var time : Long = initialTime
-        set(value){
-            if (value in 0..TIMER_MAX_VALUE){
+    var time: Long = initialTime
+        set(value) {
+            if (value in 0..TIMER_MAX_VALUE) {
                 field = value
             }
         }
@@ -69,9 +66,6 @@ class TimerObject(
     var timerTypeAutomatic = timerTypeAutomatic
         private set
 
-    val label: String
-        get() = time.getTimeAsString()
-
     /**
      * Toggles the type of timer between:
      * true - Countdown timer
@@ -79,16 +73,11 @@ class TimerObject(
      * TODO should be replaced with enum
      * @return the new timer type after it was toggled
      */
-    fun toggleTimerType() {
-        timerTypeAutomatic = !timerTypeAutomatic
-    }
 
-    fun incrementTime(){
-        if (time < TIMER_MAX_VALUE) time += TIMER_INTERVAL
-    }
+    val id: String = (1111..9999).random().toString()
 
-    fun decrementTime(){
-        if (time > TIMER_INTERVAL) time -= TIMER_INTERVAL
+    override fun toString(): String {
+        return "${this::class.java}@$id"
     }
 
 }
@@ -100,7 +89,7 @@ fun Long.getTimeAsString(): String {
         else -> "00"
     }
 
-    if (this > TIMER_MAX_VALUE || this < 0){
+    if (this > TIMER_MAX_VALUE || this < 0) {
         throw IllegalArgumentException("Source is out of range. Must be between 0 and 5999 (99:59)")
     }
     val minutes = this / 60

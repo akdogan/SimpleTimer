@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.akdogan.simpletimer.Constants
 import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.R
@@ -15,6 +18,7 @@ import com.akdogan.simpletimer.databinding.MainFragmentBinding
 import com.akdogan.simpletimer.ui.BackPressConsumer
 import com.akdogan.simpletimer.ui.printBackStack
 import com.akdogan.simpletimer.ui.timer.TimerFragment
+import kotlinx.coroutines.launch
 
 class MainFragment : Fragment(), BackPressConsumer {
 
@@ -33,8 +37,10 @@ class MainFragment : Fragment(), BackPressConsumer {
 
     private lateinit var viewModel: MainViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
         viewModel = ViewModelProvider(
             this,
@@ -47,9 +53,13 @@ class MainFragment : Fragment(), BackPressConsumer {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         timerListAdapter = TimerListAdapter(
-            viewModel::addTimer,
-            viewModel::removeTimer
+            viewModel::onCreateNewItem,
+            viewModel::onIncrementClicked,
+            viewModel::onDecrementClicked,
+            viewModel::onToggleType,
+            viewModel::onDeleteItem
         )
         binding.timerList.adapter = timerListAdapter
 
@@ -65,29 +75,32 @@ class MainFragment : Fragment(), BackPressConsumer {
             navigateToTimer()
         }
 
-        viewModel.numberOfSets.observe(viewLifecycleOwner){ numberOfSets: Int ->
-            binding.setsLabel.text = getString(R.string.sets_label, numberOfSets)
-        }
-
-        viewModel.listOfTimers.observe(viewLifecycleOwner){
-            it?.let{
-                timerListAdapter.dataSet = it
-            }
-        }
-
+        startObserving()
         printBackStack()
-
-        super.onViewCreated(view, savedInstanceState)
     }
 
-    private fun navigateToTimer(){
+    private fun startObserving() {
+        // todo also use flow
+        viewModel.numberOfSets.observe(viewLifecycleOwner) { numberOfSets: Int ->
+            binding.setsLabel.text = getString(R.string.sets_label, numberOfSets)
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.timerList.collect {
+                    timerListAdapter.submitList(it)
+                }
+            }
+        }
+    }
+
+    private fun navigateToTimer() {
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.container, TimerFragment::class.java, getBundleWithData() )
+            .replace(R.id.container, TimerFragment::class.java, getBundleWithData())
             .addToBackStack(null)
             .commit()
     }
 
-    private fun getBundleWithData(): Bundle{
+    private fun getBundleWithData(): Bundle {
         val listOfTransferObjects = viewModel.getTimerList().toTransfer()
         val b = Bundle()
         val arrList = ArrayList(listOfTransferObjects)
@@ -95,8 +108,6 @@ class MainFragment : Fragment(), BackPressConsumer {
         b.putInt(BUNDLE_KEY_NUMBER_OF_SETS, viewModel.numberOfSets.value ?: 1)
         return b
     }
-
-
 
     override fun onDestroyView() {
         super.onDestroyView()

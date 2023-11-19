@@ -19,28 +19,3 @@ class TimerObjectDB(
     @ColumnInfo
     val manual: Boolean
 )
-
-fun List<TimerObject>.toDatabase(): List<TimerObjectDB> =
-    this.mapIndexed { index, timerObject ->
-        timerObject.toDatabase(index)
-    }
-
-
-fun List<TimerObjectDB>.toDomain(): List<TimerObject>{
-    return this.sortedBy{
-        it.sort
-    }.map{
-        it.toTimerObject()
-    }
-}
-
-fun TimerObject.toDatabase(sort: Int): TimerObjectDB = TimerObjectDB(
-    sort = sort,
-    time = this.time,
-    manual = !this.timerTypeAutomatic
-)
-
-fun TimerObjectDB.toTimerObject(): TimerObject = TimerObject(
-    initialTime = this.time,
-    timerTypeAutomatic = !this.manual
-)

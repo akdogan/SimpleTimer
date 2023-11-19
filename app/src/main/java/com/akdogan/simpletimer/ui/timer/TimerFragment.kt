@@ -14,18 +14,24 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.akdogan.simpletimer.Constants
 import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.Constants.BUNDLE_KEY_TIMER_LIST
 import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.ServiceLocator
-import com.akdogan.simpletimer.data.domain.*
+import com.akdogan.simpletimer.data.domain.TimerTransferObject
+import com.akdogan.simpletimer.data.domain.getTimeAsString
+import com.akdogan.simpletimer.data.domain.millisToSeconds
+import com.akdogan.simpletimer.data.domain.toDomain
+import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
 import com.akdogan.simpletimer.ui.BackPressConsumer
 import com.akdogan.simpletimer.ui.BaseFragment
 import com.akdogan.simpletimer.ui.main.MainFragment
 import com.akdogan.simpletimer.ui.printBackStack
+import kotlinx.coroutines.launch
 
 // TODO Show Backbutton in Toolbar
 
@@ -130,9 +136,11 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     }
 
     fun setupServiceObservers() {
-        mService?.currentTime?.observe(viewLifecycleOwner) {
-            Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received from Service: $it")
-            binding.timerLabel.text = it.millisToSeconds().getTimeAsString()
+        viewLifecycleOwner.lifecycleScope.launch {
+            mService?.currentTime?.collect {
+                Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received from Service: $it")
+                binding.timerLabel.text = it.millisToSeconds().getTimeAsString()
+            }
         }
 
         mService?.countingUp?.observe(viewLifecycleOwner) {
@@ -166,7 +174,7 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
             showConfirmationDialog()
             return true
         }
-        stopAndNavigatToMain()
+        stopAndNavigateToMain()
         return true
     }
 
@@ -175,13 +183,13 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
             .setTitle("Stop Timer?")
             .setMessage("Are you sure you want to cancel your timer and go back to the main screen?")
             .setPositiveButton("Yes") { _, _ ->
-                stopAndNavigatToMain()
+                stopAndNavigateToMain()
             }
             .setNegativeButton("Stay here", null)
             .show()
     }
 
-    private fun stopAndNavigatToMain() {
+    private fun stopAndNavigateToMain() {
         mService?.stopService()
         navigateToMain()
     }

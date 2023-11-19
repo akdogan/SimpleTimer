@@ -1,24 +1,23 @@
 package com.akdogan.simpletimer.data.database
 
-import android.util.Log
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TimerDao {
 
-    @Transaction
-    suspend fun insertNew(items: List<TimerObjectDB>) {
-        Log.i("Database", "saving to database on thread ${Thread.currentThread().name}")
-        deleteAll()
-        insertAll(items)
-    }
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(items: List<TimerObjectDB>)
+    suspend fun insert(item: TimerObjectDB)
+
+    @Delete
+    suspend fun deleteItem(item: TimerObjectDB)
+
+    @Update
+    suspend fun updateItem(item: TimerObjectDB)
 
     @Query("SELECT * from last_config_table")
-    suspend fun getAll(): List<TimerObjectDB>
+    fun observeAll(): Flow<List<TimerObjectDB>>
 
-    @Query("DELETE FROM last_config_table")
-    suspend fun deleteAll()
+    @Query("SELECT sort from last_config_table ORDER BY sort DESC LIMIT 1")
+    suspend fun getLatestSort(): Int
 }

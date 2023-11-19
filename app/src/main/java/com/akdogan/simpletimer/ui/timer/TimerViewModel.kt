@@ -13,13 +13,7 @@ class TimerViewModel(
     val timerListTemplate: List<TimerObject>,
     private val repo: DataRepository
 ) : ViewModel() {
-
-    init {
-        viewModelScope.launch{
-            // TODO save numberOfSets to shared preferences
-            repo.saveTimers(timerListTemplate)
-        }
-    }
+    // todo ¯\_(ツ)_/¯
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -28,7 +22,7 @@ class TimerViewModelFactory(
     val listOfTimers: List<TimerObject>,
     val repo: DataRepository
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TimerViewModel::class.java)) {
             return TimerViewModel(numberOfSets, listOfTimers, repo) as T
         } else {

@@ -1,4 +1,4 @@
-package com.akdogan.simpletimer.ui
+package com.akdogan.simpletimer.timercore
 
 import kotlinx.coroutines.*
 import kotlin.math.absoluteValue
@@ -13,7 +13,10 @@ import kotlin.math.absoluteValue
  * @param countInterval the interval to count in milliseconds
  */
 
-abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
+abstract class CountUpTimerCoroutine(
+    protected val countInterval: Long,
+    private val coroutineScope: CoroutineScope
+) {
     protected var millisCount = 0L
     private var timerJob: Job? = null
 
@@ -21,7 +24,7 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
      * Called on every tick
      * @param millis: Milliseconds that have elapsed since the start of the timer
      */
-    abstract fun onTick(millis: Long)
+    abstract suspend fun onTick(millis: Long)
 
     /**
      * Called when the timer was finished through onStop()
@@ -33,11 +36,7 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
      * Starts / resumes the timer
      */
     open fun startTimer(): CountUpTimerCoroutine {
-        /*val scope = CoroutineScope(Job() + Dispatchers.Default)
-        timerJob = scope.launch(Dispatchers.Default) {
-            run()
-        }*/
-        timerJob = GlobalScope.launch(Dispatchers.Default) {
+        timerJob = coroutineScope.launch(Dispatchers.Default) {
             run()
         }
         return this
@@ -54,7 +53,7 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
     /**
      * Cancels the timer without invoking the [onStop] callback
      */
-    fun cancel(){
+    fun cancel() {
         timerJob?.cancel()
     }
 
@@ -75,8 +74,9 @@ abstract class CountUpTimerCoroutine(protected val countInterval: Long) {
  */
 abstract class CountDownTimerCoroutine(
     millisInFuture: Long,
-    countInterval: Long
-) : CountUpTimerCoroutine(countInterval) {
+    countInterval: Long,
+    coroutineScope: CoroutineScope
+) : CountUpTimerCoroutine(countInterval, coroutineScope) {
     private val millisInFutureNormalized = millisInFuture.absoluteValue
 
     override suspend fun run() {
@@ -95,7 +95,7 @@ abstract class CountDownTimerCoroutine(
      * Called on every tick
      * @param millis Milliseconds left for this timer
      */
-    abstract override fun onTick(millis: Long)
+    abstract override suspend fun onTick(millis: Long)
 
     override fun startTimer(): CountDownTimerCoroutine {
         super.startTimer()

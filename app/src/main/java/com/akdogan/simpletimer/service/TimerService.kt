@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import com.akdogan.simpletimer.Constants.ONGOING_NOTIFICATION_ID
 import com.akdogan.simpletimer.Constants.SERVICE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.Constants.SERVICE_KEY_TIMER_LIST
@@ -17,7 +18,11 @@ import com.akdogan.simpletimer.data.domain.getTimeAsString
 import com.akdogan.simpletimer.data.domain.millisToSeconds
 import com.akdogan.simpletimer.data.domain.toDomain
 import com.akdogan.simpletimer.timercore.TimerManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class TimerService : LifecycleService() {
     inner class ServiceBinder : Binder() {
@@ -28,7 +33,7 @@ class TimerService : LifecycleService() {
     private var initialized = false
 
     // Exposed observables
-    val currentTime: LiveData<Long> by lazy { timerManager.currentTime }
+    val currentTime: StateFlow<Long> by lazy { timerManager.currentTime }
     val countingUp: LiveData<Boolean> by lazy { timerManager.countingUp }
     val currentSet: LiveData<Int> by lazy { timerManager.currentSet }
     val currentRound: LiveData<Int> by lazy { timerManager.currentRound }
@@ -77,7 +82,7 @@ class TimerService : LifecycleService() {
 
             Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
 
-            timerManager = TimerManager(sets, timerList)
+            timerManager = TimerManager(sets, timerList, this.lifecycleScope)
 
             setupObservers()
             timerManager.startManager()
@@ -92,10 +97,12 @@ class TimerService : LifecycleService() {
 
         this.lifecycle.addObserver(timerManager)
 
-        timerManager.currentTime.observe(this) {
-            updateNotification(it.millisToSeconds().getTimeAsString())
-            if (it == 0L) {
-                playSound()
+        lifecycleScope.launch {
+            timerManager.currentTime.collect {
+                updateNotification(it.millisToSeconds().getTimeAsString())
+                if (it == 0L) {
+                    playSound()
+                }
             }
         }
 
@@ -104,6 +111,7 @@ class TimerService : LifecycleService() {
                 stopSelf()
             }
         }
+
     }
 
     private fun userHasStopped() {

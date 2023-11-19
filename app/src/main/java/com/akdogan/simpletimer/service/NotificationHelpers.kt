@@ -36,7 +36,7 @@ fun getServiceNotification(
 
     val intent = Intent(context, MainActivity::class.java)
 
-    val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+    val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
     val notification: Notification = Notification.Builder(context,
         Constants.NOT_CHANNEL_ID
@@ -60,13 +60,13 @@ fun getServiceNotification(
 fun getActionNext(context: Context): Notification.Action {
     val intent = Intent(context, TimerService::class.java)
         .setAction(TimerService.ACTION_NEXT_TIMER)
-    val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
+    val pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     return Notification.Action.Builder(null, "NEXT", pendingIntent ).build()
 }
 
 fun getActionStop(context: Context): Notification.Action{
     val intent = Intent(context, TimerService::class.java)
         .setAction(TimerService.ACTION_STOP_TIMER)
-    val pendingIntent = PendingIntent.getService(context, 0, intent, 0)
+    val pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     return Notification.Action.Builder(null, "STOP", pendingIntent).build()
 }
