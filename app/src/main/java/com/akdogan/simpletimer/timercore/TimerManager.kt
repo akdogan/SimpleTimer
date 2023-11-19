@@ -2,28 +2,30 @@ package com.akdogan.simpletimer.timercore
 
 import androidx.lifecycle.*
 import com.akdogan.simpletimer.data.domain.TimerObject
-import com.akdogan.simpletimer.ui.CountDownTimerCoroutine
-import com.akdogan.simpletimer.ui.CountUpTimerCoroutine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class TimerManager(
     private val numberOfSets: Int,
-    private val timerListTemplate: List<TimerObject>
+    private val timerListTemplate: List<TimerObject>,
+    private val coroutineScope: CoroutineScope
 ) : LifecycleObserver {
     var running = false
 
-
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun serviceIsStopped(){
+    fun serviceIsStopped() {
         timerInternal?.cancel()
     }
 
-    companion object{
+    companion object {
         const val TAG = "TIMER_MANAGER_TEST"
     }
 
-    private val _currentTime = MutableLiveData<Long>()
-    val currentTime: LiveData<Long>
-    get() = _currentTime
+    private val _currentTime = MutableStateFlow<Long>(0)
+    val currentTime: StateFlow<Long>
+        get() = _currentTime
 
     private val _countingUp = MutableLiveData(false)
     val countingUp: LiveData<Boolean>
@@ -41,7 +43,6 @@ class TimerManager(
     val allTimersFinished : LiveData<Boolean>
         get() = _allTimersFinished
 
-
     private var timerList: MutableList<TimerObject> = mutableListOf()
     private var timerInternal: CountUpTimerCoroutine? = null
     private var currentSetInternal: Int = 0
@@ -50,13 +51,11 @@ class TimerManager(
             _currentSet.postValue(value)
         }
 
-
-    fun startManager(){
-        if (!running){
+    fun startManager() {
+        if (!running) {
             running = true
             startNextSet()
         }
-
     }
 
     private fun startNextSet() {
@@ -86,31 +85,33 @@ class TimerManager(
         }
     }
 
-    private fun createTimer(t: TimerObject): CountUpTimerCoroutine { //executeOnStartCallbacks(t)
-        val onTick = { millis: Long ->
-            _currentTime.postValue(millis)
-        }
-        val onFinish = { millis: Long ->
-            startNextTimer()
-        }
+    private fun createTimer(t: TimerObject): CountUpTimerCoroutine {
         return if (t.timerTypeAutomatic) {
             _countingUp.postValue(false)
-            object : CountDownTimerCoroutine(t.time * 1000, 1000) {
-                override fun onTick(millis: Long) { onTick(millis) }
-                override fun onFinish(millis: Long) { onFinish(millis) }
+            object : CountDownTimerCoroutine(t.time * 1000, 1000, coroutineScope) {
+                override suspend fun onTick(millis: Long) {
+                    _currentTime.emit(millis)
+                }
+
+                override fun onFinish(millis: Long) {
+                    startNextTimer()
+                }
             }
         } else {
             _countingUp.postValue(true)
-            object : CountUpTimerCoroutine(1000) {
-                override fun onTick(millis: Long) { onTick(millis) }
-                override fun onFinish(millis: Long) { onFinish(millis) }
+            object : CountUpTimerCoroutine(1000, coroutineScope) {
+                override suspend fun onTick(millis: Long) {
+                    _currentTime.emit(millis)
+                }
+
+                override fun onFinish(millis: Long) {
+                    startNextTimer()
+                }
             }
         }
-
     }
 
     fun userPressedNext() {
         timerInternal?.stopTimer()
     }
-
 }
