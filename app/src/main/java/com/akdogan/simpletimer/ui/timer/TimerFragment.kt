@@ -12,40 +12,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.akdogan.simpletimer.Constants
-import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
-import com.akdogan.simpletimer.Constants.BUNDLE_KEY_TIMER_LIST
 import com.akdogan.simpletimer.R
-import com.akdogan.simpletimer.ServiceLocator
-import com.akdogan.simpletimer.data.domain.TimerTransferObject
-import com.akdogan.simpletimer.data.domain.getTimeAsString
-import com.akdogan.simpletimer.data.domain.millisToSeconds
-import com.akdogan.simpletimer.data.domain.toDomain
-import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
 import com.akdogan.simpletimer.ui.BackPressConsumer
-import com.akdogan.simpletimer.ui.BaseFragment
+import com.akdogan.simpletimer.ui.TAG
+import com.akdogan.simpletimer.ui.getTimeAsString
 import com.akdogan.simpletimer.ui.main.MainFragment
+import com.akdogan.simpletimer.ui.millisToSeconds
 import com.akdogan.simpletimer.ui.printBackStack
 import kotlinx.coroutines.launch
 
 // TODO Show Backbutton in Toolbar
 
-class TimerFragment : BaseFragment(), BackPressConsumer {
+class TimerFragment : Fragment(), BackPressConsumer {
 
     companion object {
         fun newInstance() = TimerFragment()
-        const val TAG_CALLBACK = "CALLBACK_TRACING"
-        const val TAG_LIFECYCLE_SERVICE = "LIFECYCLE_SERVICE"
     }
 
     // Service connection
     private var mService: TimerService? = null
-    private var mBound = MutableLiveData<Boolean>(false)
+    private var mBound = MutableLiveData(false)
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -62,23 +55,12 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     private var _binding: TimerFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: TimerViewModel
+    private val viewModel: TimerViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
-        val list = arguments
-            ?.getParcelableArrayList<TimerTransferObject>(BUNDLE_KEY_TIMER_LIST)
-            ?.toDomain() ?: emptyList()
-
-        val sets = arguments?.getInt(BUNDLE_KEY_NUMBER_OF_SETS, 1) ?: 1
-
-        viewModel = ViewModelProvider(
-            this,
-            TimerViewModelFactory(sets, list, ServiceLocator.repo)
-        ).get(TimerViewModel::class.java)
 
         _binding = TimerFragmentBinding.inflate(inflater, container, false)
 
@@ -108,10 +90,6 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
         super.onStop()
     }
 
-    private fun getTransferList(): ArrayList<TimerTransferObject> {
-        return ArrayList(viewModel.timerListTemplate.toTransfer())
-    }
-
     private fun unBindFromService() {
         requireActivity().unbindService(connection)
         mBound.postValue(false)
@@ -124,7 +102,6 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
 
     private fun startMyService() {
         val intent = Intent(requireContext(), TimerService::class.java)
-            .putParcelableArrayListExtra(Constants.SERVICE_KEY_TIMER_LIST, getTransferList())
             .putExtra(Constants.SERVICE_KEY_NUMBER_OF_SETS, viewModel.numberOfSets)
         requireActivity().startService(intent)
     }
@@ -138,7 +115,7 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     fun setupServiceObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             mService?.currentTime?.collect {
-                Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received from Service: $it")
+                Log.i(TAG, "Fragment received from Service: $it")
                 binding.timerLabel.text = it.millisToSeconds().getTimeAsString()
             }
         }
@@ -161,7 +138,7 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
             binding.timerRoundsTitle.text = getString(R.string.timer_rounds_title, it)
         }
         mService?.allTimersAreFinished?.observe(viewLifecycleOwner) {
-            Log.i(TAG_LIFECYCLE_SERVICE, "Fragment received final call: $it")
+            Log.i(TAG, "Fragment received final call: $it")
             if (it == true) binding.timerLabel.text = "YEAH!!"
         }
         mService?.userHasStopped?.observe(viewLifecycleOwner) {
@@ -207,5 +184,4 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
     private fun turnOffWakeLock() {
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
-
 }

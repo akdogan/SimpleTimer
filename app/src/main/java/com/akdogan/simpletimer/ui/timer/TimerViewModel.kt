@@ -1,34 +1,17 @@
 package com.akdogan.simpletimer.ui.timer
 
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import com.akdogan.simpletimer.data.domain.TimerObject
-import com.akdogan.simpletimer.data.repository.DataRepository
-import kotlinx.coroutines.launch
+import com.akdogan.simpletimer.Constants
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class TimerViewModel(
-    val numberOfSets: Int,
-    val timerListTemplate: List<TimerObject>,
-    private val repo: DataRepository
+@HiltViewModel
+class TimerViewModel @Inject constructor(
+    val handle: SavedStateHandle
 ) : ViewModel() {
-    // todo ¯\_(ツ)_/¯
-}
 
-@Suppress("UNCHECKED_CAST")
-class TimerViewModelFactory(
-    val numberOfSets: Int,
-    val listOfTimers: List<TimerObject>,
-    val repo: DataRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TimerViewModel::class.java)) {
-            return TimerViewModel(numberOfSets, listOfTimers, repo) as T
-        } else {
-            throw IllegalArgumentException(
-                "Wrong ViewModel Class! Expected ${TimerViewModel::class.java} found $modelClass"
-            )
-        }
-    }
+    val numberOfSets: Int = handle.get(Constants.BUNDLE_KEY_NUMBER_OF_SETS) ?: 1
+
 }

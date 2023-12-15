@@ -4,20 +4,24 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import com.akdogan.simpletimer.R
 import com.akdogan.simpletimer.service.TimerService
 import com.akdogan.simpletimer.service.createNotificationChannel
 import com.akdogan.simpletimer.ui.main.MainFragment
 import com.akdogan.simpletimer.ui.timer.TimerFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-
-class MainActivity : BaseActivity() {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
-        log("TimerService running: ${isServiceRunning(TimerService::class.java)}")
+        Log.d(TAG,"TimerService running: ${isServiceRunning(TimerService::class.java)}")
         if (savedInstanceState == null) {
             if (isServiceRunning(TimerService::class.java)) {
                 navigateToTimer()
@@ -32,10 +36,10 @@ class MainActivity : BaseActivity() {
         val manager : ActivityManager = this.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val servicesList = manager.getRunningServices(10)
         servicesList.forEachIndexed { index, runningServiceInfo ->
-            log("[$index] ${runningServiceInfo.service.className}")
+            Log.d(TAG,"[$index] ${runningServiceInfo.service.className}")
             if (runningServiceInfo.service.className == cls.canonicalName) return true
         }
-        log("false! Cls: ${cls.canonicalName}")
+        Log.d(TAG,"false! Cls: ${cls.canonicalName}")
         return false
     }
 
@@ -53,7 +57,9 @@ class MainActivity : BaseActivity() {
 
     private fun navigateToMain(){
         supportFragmentManager.beginTransaction()
-            .replace(R.id.container, MainFragment.newInstance())
+            .replace(R.id.container, MainFragment.newInstance().apply {
+                arguments = bundleOf("test_key" to 42)
+            })
             .commitNow()
     }
 }

@@ -9,12 +9,6 @@ fun TimerObjectDB.toDomain() = TimerDomain(
     manual = manual
 )
 
-
-fun TimerDomain.toTimerObject(): TimerObject = TimerObject(
-    initialTime = time,
-    timerTypeAutomatic = !manual
-)
-
 fun TimerDomain.toDatabase() = TimerObjectDB(
     id = dataBaseId,
     sort = sort,

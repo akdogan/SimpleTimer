@@ -1,27 +1,20 @@
 package com.akdogan.simpletimer.timercore
 
 import androidx.lifecycle.*
-import com.akdogan.simpletimer.data.domain.TimerObject
+import com.akdogan.simpletimer.data.domain.TimerDomain
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
-class TimerManager(
-    private val numberOfSets: Int,
-    private val timerListTemplate: List<TimerObject>,
-    private val coroutineScope: CoroutineScope
-) : LifecycleObserver {
+class TimerManager @AssistedInject constructor(
+    @Assisted private val numberOfSets: Int,
+    @Assisted private val timerListTemplate: List<TimerDomain>,
+    @Assisted private val coroutineScope: CoroutineScope
+) : LifecycleEventObserver {
+
     var running = false
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun serviceIsStopped() {
-        timerInternal?.cancel()
-    }
-
-    companion object {
-        const val TAG = "TIMER_MANAGER_TEST"
-    }
 
     private val _currentTime = MutableStateFlow<Long>(0)
     val currentTime: StateFlow<Long>
@@ -43,13 +36,17 @@ class TimerManager(
     val allTimersFinished : LiveData<Boolean>
         get() = _allTimersFinished
 
-    private var timerList: MutableList<TimerObject> = mutableListOf()
+    private var timerList: MutableList<TimerDomain> = mutableListOf()
     private var timerInternal: CountUpTimerCoroutine? = null
     private var currentSetInternal: Int = 0
         set(value) {
             field = value
             _currentSet.postValue(value)
         }
+
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        if (event == Lifecycle.Event.ON_DESTROY) timerInternal?.cancel()
+    }
 
     fun startManager() {
         if (!running) {
@@ -85,8 +82,8 @@ class TimerManager(
         }
     }
 
-    private fun createTimer(t: TimerObject): CountUpTimerCoroutine {
-        return if (t.timerTypeAutomatic) {
+    private fun createTimer(t: TimerDomain): CountUpTimerCoroutine {
+        return if (!t.manual) {
             _countingUp.postValue(false)
             object : CountDownTimerCoroutine(t.time * 1000, 1000, coroutineScope) {
                 override suspend fun onTick(millis: Long) {

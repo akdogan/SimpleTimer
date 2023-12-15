@@ -9,10 +9,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 // Todo add shared preferences
-
-class DataRepository(private val db: TimerDao) {
+class DataRepository @Inject constructor(private val db: TimerDao) {
 
     suspend fun createItem() = withContext(Dispatchers.IO) {
         db.insert(
@@ -31,6 +31,12 @@ class DataRepository(private val db: TimerDao) {
     fun observeAll(): Flow<List<TimerDomain>> {
         return db.observeAll().map { list ->
             list.map { it.toDomain() }
+        }
+    }
+
+    suspend fun getAll(): List<TimerDomain> {
+        return db.getAll().map {
+            it.toDomain()
         }
     }
 

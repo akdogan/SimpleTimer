@@ -1,21 +1,29 @@
 package com.akdogan.simpletimer.ui.main
 
-import androidx.lifecycle.*
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.akdogan.simpletimer.data.domain.AddButton
 import com.akdogan.simpletimer.data.domain.TimerDomain
-import com.akdogan.simpletimer.data.domain.TimerObject
 import com.akdogan.simpletimer.data.domain.decrementTime
 import com.akdogan.simpletimer.data.domain.incrementTime
-import com.akdogan.simpletimer.data.domain.toTimerObject
 import com.akdogan.simpletimer.data.domain.toggleTimerType
 import com.akdogan.simpletimer.data.repository.DataRepository
+import com.akdogan.simpletimer.ui.TAG
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(
-    private val repo: DataRepository
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    val handle: SavedStateHandle,
+    val repo: DataRepository
 ) : ViewModel() {
 
     private var numberOfSetsInternal = 1
@@ -31,6 +39,11 @@ class MainViewModel(
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
+
+    init {
+        val test = handle.get<Int>("test_key")
+        Log.d(TAG, "Arguments from fragment: $test")
+    }
 
     fun incrementSet() {
         numberOfSetsInternal++
@@ -72,22 +85,5 @@ class MainViewModel(
         viewModelScope.launch {
             repo.createItem()
         }
-    }
-
-    fun getTimerList(): List<TimerObject> = timerList.value.mapNotNull {
-        if (it is AddButton) null else { (it as TimerDomain).toTimerObject() }
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-class MainViewModelFactory(
-    private val repo: DataRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(repo) as T
-        } else throw IllegalArgumentException(
-            "Wrong ViewModel Class! Expected ${MainViewModel::class.java} found $modelClass"
-        )
     }
 }

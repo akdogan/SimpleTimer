@@ -1,10 +1,7 @@
 package com.akdogan.simpletimer
 
 import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-class TimerApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        ServiceLocator.setupDefaultRepository(applicationContext)
-    }
-}
+@HiltAndroidApp
+class TimerApplication : Application()

@@ -1,6 +1,7 @@
 package com.akdogan.simpletimer.data.domain
 
 import com.akdogan.simpletimer.Constants
+import com.akdogan.simpletimer.ui.getTimeAsString
 
 sealed interface MListItem
 

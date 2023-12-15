@@ -13,12 +13,12 @@ abstract class TimerDataBase : RoomDatabase() {
         @Volatile
         private var INSTANCE: TimerDataBase? = null
 
-        fun getInstance(con: Context): TimerDataBase{
+        fun getInstance(context: Context): TimerDataBase{
             synchronized(this){
                 var instance = INSTANCE
                 if (instance == null){
                     instance = Room.databaseBuilder(
-                        con,
+                        context,
                         TimerDataBase::class.java,
                         "last_config_table"
                     )

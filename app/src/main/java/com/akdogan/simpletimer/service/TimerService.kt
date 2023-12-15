@@ -11,23 +11,32 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import com.akdogan.simpletimer.Constants.ONGOING_NOTIFICATION_ID
 import com.akdogan.simpletimer.Constants.SERVICE_KEY_NUMBER_OF_SETS
-import com.akdogan.simpletimer.Constants.SERVICE_KEY_TIMER_LIST
 import com.akdogan.simpletimer.R
-import com.akdogan.simpletimer.data.domain.TimerTransferObject
-import com.akdogan.simpletimer.data.domain.getTimeAsString
-import com.akdogan.simpletimer.data.domain.millisToSeconds
-import com.akdogan.simpletimer.data.domain.toDomain
+import com.akdogan.simpletimer.data.repository.DataRepository
+import com.akdogan.simpletimer.di.TimerManagerFactory
 import com.akdogan.simpletimer.timercore.TimerManager
+import com.akdogan.simpletimer.ui.getTimeAsString
+import com.akdogan.simpletimer.ui.millisToSeconds
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TimerService : LifecycleService() {
+
     inner class ServiceBinder : Binder() {
         fun getService(): TimerService = this@TimerService
     }
+
+    @Inject
+    lateinit var repository: DataRepository
+
+    @Inject
+    lateinit var timerManagerFactory: TimerManagerFactory
 
     private lateinit var timerManager: TimerManager
     private var initialized = false
@@ -75,18 +84,22 @@ class TimerService : LifecycleService() {
         // Setup timerManager and observers
         if (!initialized) {
 
-            val timerList = intent?.getParcelableArrayListExtra<TimerTransferObject>(
-                SERVICE_KEY_TIMER_LIST
-            )?.toDomain() ?: emptyList()
-            val sets = intent?.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0) ?: 0
+            lifecycleScope.launch {
 
-            Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
+                val timerList = repository.getAll()
 
-            timerManager = TimerManager(sets, timerList, this.lifecycleScope)
 
-            setupObservers()
-            timerManager.startManager()
-            initialized = true
+                val sets = intent?.getIntExtra(SERVICE_KEY_NUMBER_OF_SETS, 0) ?: 0
+
+                Log.i(TAG, "intent data extracted sets $sets, timerlist $timerList")
+
+                timerManager =
+                    timerManagerFactory.create(sets, timerList, this@TimerService.lifecycleScope)
+
+                setupObservers()
+                timerManager.startManager()
+                initialized = true
+            }
 
         }
 
@@ -156,9 +169,4 @@ class TimerService : LifecycleService() {
         const val ACTION_NEXT_TIMER = "ACTION_NEXT_TIMER"
         const val ACTION_STOP_TIMER = "ACTION_STOP_TIMER"
     }
-
 }
-
-
-
-

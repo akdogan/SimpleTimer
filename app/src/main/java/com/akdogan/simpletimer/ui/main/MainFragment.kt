@@ -5,21 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.akdogan.simpletimer.Constants
 import com.akdogan.simpletimer.Constants.BUNDLE_KEY_NUMBER_OF_SETS
 import com.akdogan.simpletimer.R
-import com.akdogan.simpletimer.ServiceLocator
-import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.MainFragmentBinding
 import com.akdogan.simpletimer.ui.BackPressConsumer
 import com.akdogan.simpletimer.ui.printBackStack
 import com.akdogan.simpletimer.ui.timer.TimerFragment
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainFragment : Fragment(), BackPressConsumer {
 
     companion object {
@@ -35,17 +34,12 @@ class MainFragment : Fragment(), BackPressConsumer {
 
     private lateinit var timerListAdapter: TimerListAdapter
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
-        viewModel = ViewModelProvider(
-            this,
-            MainViewModelFactory(ServiceLocator.repo)
-        ).get(MainViewModel::class.java)
 
         _binding = MainFragmentBinding.inflate(inflater, container, false)
 
@@ -101,12 +95,9 @@ class MainFragment : Fragment(), BackPressConsumer {
     }
 
     private fun getBundleWithData(): Bundle {
-        val listOfTransferObjects = viewModel.getTimerList().toTransfer()
-        val b = Bundle()
-        val arrList = ArrayList(listOfTransferObjects)
-        b.putParcelableArrayList(Constants.BUNDLE_KEY_TIMER_LIST, arrList)
-        b.putInt(BUNDLE_KEY_NUMBER_OF_SETS, viewModel.numberOfSets.value ?: 1)
-        return b
+        val bundle = Bundle()
+        bundle.putInt(BUNDLE_KEY_NUMBER_OF_SETS, viewModel.numberOfSets.value ?: 1)
+        return bundle
     }
 
     override fun onDestroyView() {
@@ -119,5 +110,4 @@ class MainFragment : Fragment(), BackPressConsumer {
         requireActivity().finish()
         return true
     }
-
 }

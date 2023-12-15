@@ -18,6 +18,9 @@ interface TimerDao {
     @Query("SELECT * from last_config_table")
     fun observeAll(): Flow<List<TimerObjectDB>>
 
+    @Query("SELECT * from last_config_table")
+    suspend fun getAll(): List<TimerObjectDB>
+
     @Query("SELECT sort from last_config_table ORDER BY sort DESC LIMIT 1")
     suspend fun getLatestSort(): Int
 }
