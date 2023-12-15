@@ -8,10 +8,9 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -28,14 +27,13 @@ import com.akdogan.simpletimer.data.domain.toTransfer
 import com.akdogan.simpletimer.databinding.TimerFragmentBinding
 import com.akdogan.simpletimer.service.TimerService
 import com.akdogan.simpletimer.ui.BackPressConsumer
-import com.akdogan.simpletimer.ui.BaseFragment
+import com.akdogan.simpletimer.ui.BaseComposeFragment
 import com.akdogan.simpletimer.ui.main.MainFragment
-import com.akdogan.simpletimer.ui.printBackStack
 import kotlinx.coroutines.launch
 
 // TODO Show Backbutton in Toolbar
 
-class TimerFragment : BaseFragment(), BackPressConsumer {
+class TimerFragment : BaseComposeFragment(), BackPressConsumer {
 
     companion object {
         fun newInstance() = TimerFragment()
@@ -51,7 +49,7 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as TimerService.ServiceBinder
             mService = binder.getService()
-            setupServiceObservers()
+//            setupServiceObservers()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -64,11 +62,18 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
 
     private lateinit var viewModel: TimerViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+//    override fun onCreateView(
+//        inflater: LayoutInflater, container: ViewGroup?,
+//        savedInstanceState: Bundle?
+//    ): View {
+//
+//
+//        val view = ComposeView(requireContext())
+//        return view
+//
+//    }
 
+    override fun onViewCreated(view: ComposeView, savedInstanceState: Bundle?) {
         val list = arguments
             ?.getParcelableArrayList<TimerTransferObject>(BUNDLE_KEY_TIMER_LIST)
             ?.toDomain() ?: emptyList()
@@ -80,16 +85,19 @@ class TimerFragment : BaseFragment(), BackPressConsumer {
             TimerViewModelFactory(sets, list, ServiceLocator.repo)
         ).get(TimerViewModel::class.java)
 
-        _binding = TimerFragmentBinding.inflate(inflater, container, false)
+        view.setContent {
+            MaterialTheme {
+                TimerScreen()
+            }
+        }
 
-        return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        startMyService()
-        printBackStack()
-        super.onViewCreated(view, savedInstanceState)
-    }
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+////        startMyService()
+////        printBackStack()
+//        super.onViewCreated(view, savedInstanceState)
+//    }
 
     override fun onStart() {
         bindToService()
