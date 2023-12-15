@@ -4,7 +4,7 @@ buildscript {
         agp_version1 = '8.1.2'
         agp_version = '8.1.0'
     }
-    ext.kotlin_version = "1.8.10"
+    ext.kotlin_version = "1.9.10"
     repositories {
         google()
         mavenCentral()
@@ -19,7 +19,8 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '1.8.10-1.0.9' apply false
+    id 'com.google.devtools.ksp' version '1.9.10-1.0.13' apply false
+    id 'com.google.dagger.hilt.android' version '2.49' apply false
 }
 
 allprojects {
